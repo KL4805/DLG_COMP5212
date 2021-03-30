@@ -117,3 +117,5 @@ There are the following issues that the paper (and the code) fails to address:
     - It is interesting to test DLG on that more realistic scenario. 
 - The code only provides implementation of LeNet and ResNet. 
     - It is interesting to see how model architecture affects the attack. For example, do more parameters make it easier to attack, or harder? 
+- Evaluations are limited. Only visualization is carried out. 
+    - Objective metrics should be involved, such as the MSE, the PSNR (peak signal-to-noise ratio). 
