@@ -95,7 +95,11 @@ To run the code, following libraies are required
 
 ```
 # Single image on MNIST
-python main.py --index 25
+python main.py --index [0, 50000]
+# Single image on CIFAR-10
+python main.py --index [0, 50000] --data CIFAR10
+# Single image on CIFAR-10, using iDLG (infers label first)
+python main.py --index [0, 50000] --data CIFAR10 --alg iDLG
 ```
 
 
