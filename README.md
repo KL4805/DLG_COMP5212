@@ -4,9 +4,9 @@ Note: The code here are minor modifications based on https://github.com/mit-han-
 
 ## Original Paper
 
-\[[paper](https://arxiv.org/abs/1906.08935)\]
+DLG: \[[paper](https://arxiv.org/abs/1906.08935)\] \[[Website](https://hanlab.mit.edu/projects/dlg/)\]
 
-\[[Website](https://hanlab.mit.edu/projects/dlg/)\]
+iDLG: \[[paper](https://arxiv.org/pdf/2001.02610.pdf)\] iDLG is an extension over DLG that first infers label information given the gradients. 
 
 ## Introduction
 
