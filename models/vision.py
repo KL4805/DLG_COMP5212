@@ -6,6 +6,7 @@ import torchvision
 from torchvision import models, datasets, transforms
 
 
+
 def weights_init(m):
     if hasattr(m, "weight"):
         m.weight.data.uniform_(-0.5, 0.5)
@@ -26,7 +27,7 @@ class LeNet(nn.Module):
             act(),
         )
         self.fc = nn.Sequential(
-            nn.Linear(input_dim * 588, out_dim)
+            nn.Linear(768, out_dim)
         )
         
     def forward(self, x):
@@ -69,9 +70,11 @@ class BasicBlock(nn.Module):
             )
 
     def forward(self, x):
+        # out = F.relu(self.bn1(self.conv1(x)))
         out = torch.sigmoid(self.bn1(self.conv1(x)))
         out = self.bn2(self.conv2(out))
         out += self.shortcut(x)
+        # out = F.relu(out)
         out = torch.sigmoid(out)
         return out
 
@@ -98,18 +101,21 @@ class Bottleneck(nn.Module):
     def forward(self, x):
         out = torch.sigmoid(self.bn1(self.conv1(x)))
         out = torch.sigmoid(self.bn2(self.conv2(out)))
+        # out = F.relu(self.bn1(self.conv1(x)))
+        # out = F.relu(self.bn2(self.conv2(out)))
         out = self.bn3(self.conv3(out))
         out += self.shortcut(x)
-        out = torch.sigmoid(out)
+        # out = torch.sigmoid(out)
+        out = F.relu(out)
         return out
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=10):
+    def __init__(self, block, num_blocks, num_classes=10, in_channels = 3):
         super(ResNet, self).__init__()
         self.in_planes = 64
 
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
         self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=1)
@@ -126,6 +132,7 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        # out = F.relu(self.bn1(self.conv1(x)))
         out = torch.sigmoid(self.bn1(self.conv1(x)))
         # print(out.shape)
         out = self.layer1(out)
@@ -144,11 +151,11 @@ class ResNet(nn.Module):
         return out
 
 
-def ResNet18():
-    return ResNet(BasicBlock, [2,2,2,2])
+def ResNet18(nclass = 10, in_channels = 3):
+    return ResNet(BasicBlock, [2,2,2,2], num_classes=nclass, in_channels=in_channels)
 
-def ResNet34():
-    return ResNet(BasicBlock, [3,4,6,3])
+def ResNet34(nclass = 10, in_channels = 3):
+    return ResNet(BasicBlock, [3,4,6,3], num_classes=nclass, in_channels=in_channels)
 
 def ResNet50():
     return ResNet(Bottleneck, [3,4,6,3])
@@ -159,3 +166,71 @@ def ResNet101():
 def ResNet152():
     return ResNet(Bottleneck, [3,8,36,3])
 
+def alexnet32x32(in_channels=3, act=nn.ReLU(inplace=True)):
+    return nn.Sequential(
+        nn.Conv2d(in_channels, 64, 5, 1, 2),
+        act,
+        nn.MaxPool2d(2, 2),  # 32 -> 16
+        nn.Conv2d(64, 192, 5, 1, 2),
+        act,
+        nn.MaxPool2d(2, 2),  # 16 -> 8
+        nn.Conv2d(192, 384, 3, 1, 1),
+        act,
+        nn.Conv2d(384, 256, 3, 1, 1),
+        act,
+        nn.Conv2d(256, 256, 3, 1, 1),
+        act,
+        nn.MaxPool2d(2, 2),  # 8 -> 4
+        nn.AdaptiveAvgPool2d((4, 4))
+        # adaptiveavgpool(a, b): for all input sized [B, C, H, W], we pool it to (B, C, a, b)
+    )
+
+
+class AlexNet(nn.Module):
+    def __init__(self, nclass, act='sigmoid', in_channels=3):
+        super(AlexNet, self).__init__()
+
+        if act == 'relu':
+            act_layer = nn.ReLU(inplace=True)
+        elif act == 'tanh':
+            act_layer = nn.Tanh()
+        else:
+            act_layer = nn.Sigmoid()
+
+        self.actname = act
+
+        self.features = alexnet32x32(in_channels, act_layer)
+
+        self.avgpool1x1 = nn.AdaptiveAvgPool2d((1, 1))
+
+        self.fc = nn.Sequential(
+            nn.Flatten(),
+            nn.Dropout(0.5),
+            nn.Linear(256 * 4 * 4, 256),
+            act_layer
+        )
+        outsize = 256
+
+        self.cefc = nn.Linear(outsize, nclass)
+
+
+        self.fc_layers = nn.ModuleList([self.fc, self.cefc])
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                if self.actname == 'sigmoid':
+                    nn.init.uniform_(m.weight, -0.3, 0.3)
+                else:
+                    nn.init.kaiming_normal_(m.weight, nonlinearity=self.actname)
+
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.fc(x)
+        u = self.cefc(x)
+        return u 
