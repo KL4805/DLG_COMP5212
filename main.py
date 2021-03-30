@@ -12,13 +12,20 @@ import torch.nn.functional as F
 from torch.autograd import grad
 import torchvision
 from torchvision import models, datasets, transforms
-print(torch.__version__, torchvision.__version__)
+import time
+print("Pytorch version:", torch.__version__, "torchvision version:", torchvision.__version__)
 
 from utils import label_to_onehot, cross_entropy_for_onehot
 
 parser = argparse.ArgumentParser(description='Deep Leakage from Gradients.')
-parser.add_argument('--index', type=int, default="25",
+parser.add_argument('--index', type=int, default=25,
                     help='the index for leaking images on MNIST.')
+parser.add_argument("--arch", type=str, default='LeNet5', 
+                    help="Network architecture to test deep leakage. Supports LeNet, ResNet18, ResNet34")
+parser.add_argument("--data", type=str, default="MNIST", 
+                    help='Dataset to use. Supports MNIST, FashionMNIST, CIFAR10')
+parser.add_argument("--iters", type = int, default = 300, 
+                    help='Number of iterations to run DLG. Should be multiples of 10. ')
 args = parser.parse_args()
 
 device = "cpu"
@@ -26,8 +33,14 @@ if torch.cuda.is_available():
     device = "cuda"
 print("Running on %s" % device)
 
-# dst = datasets.CIFAR100("~/.torch", download=True)
-dst = datasets.MNIST("./", download = True)
+if args.data == "MNIST":
+    dst = datasets.MNIST("./", download = True)
+elif args.data == 'FashionMNIST':
+    dst = datasets.FashionMNIST('./', download = True)
+elif args.data == 'CIFAR10':
+    dst = datasets.CIFAR10("./CIFAR10", download = True)
+else:
+    raise NotImplementedError("Only supports MNIST, FashionMNIST, CIFAR10")
 tp = transforms.ToTensor()
 tt = transforms.ToPILImage()
 
@@ -35,9 +48,6 @@ img_index = args.index
 # the target for deep leakage
 gt_data = tp(dst[img_index][0]).to(device)
 
-if len(args.image) > 1:
-    gt_data = Image.open(args.image)
-    gt_data = tp(gt_data).to(device)
 
 
 gt_data = gt_data.view(1, *gt_data.size())
@@ -47,9 +57,15 @@ gt_onehot_label = label_to_onehot(gt_label, num_classes = 10)
 
 plt.imshow(tt(gt_data[0].cpu()))
 
-from models.vision import LeNet, weights_init
-net = LeNet(1, 10).to(device)
-
+from models.vision import LeNet, weights_init, ResNet18, ResNet34
+if args.arch == 'LeNet5':
+    net = LeNet(1, 10).to(device)
+elif args.arch == 'ResNet18':
+    net = ResNet18()
+elif args.arch == 'ResNet34':
+    net = ResNet34()
+else:
+    raise NotImplementedError("Only supports LeNet5, ResNet18 and ResNet34.")
 
 torch.manual_seed(1234)
 
@@ -74,7 +90,8 @@ optimizer = torch.optim.LBFGS([dummy_data, dummy_label])
 
 
 history = []
-for iters in range(300):
+start_time = time.time()
+for iters in range(args.iters):
     def closure():
         optimizer.zero_grad()
 
@@ -93,11 +110,11 @@ for iters in range(300):
     optimizer.step(closure)
     if iters % 10 == 0: 
         current_loss = closure()
-        print(iters, "%.4f" % current_loss.item())
+        print("Time: %.2fs, Iter %d, Loss %.4f" % (time.time() - start_time, iters, current_loss.item()))
         history.append(tt(dummy_data[0].cpu()))
 
 plt.figure(figsize=(12, 8))
-for i in range(30):
+for i in range(args.iters // 10):
     plt.subplot(3, 10, i + 1)
     plt.imshow(history[i])
     plt.title("iter=%d" % (i * 10))
