@@ -104,8 +104,8 @@ python main.py --index 25
 
 There are the following issues that the paper (and the code) fails to address: 
 
-- Neither the paper nor the code states clearly what stage the involved model is in. Is it just initialized, halfway during training, or has already converged?
-    - The code only implements the case where the model is just initialized. 
+- Both the paper and the code only study the case where the model is just initialized randomly.
+    - In reality, it is possible to initialize a model using some pre-trained models, which presumably generates gradients of smaller magnitudes. 
 - The paper states that it is possible to recover a batch. However, the code does not implement this function. 
     - It is good to try to implement that, as in reality, model training is carried out in mini-batches. 
     - It is also interesting to see how batch size influences the attack. 
