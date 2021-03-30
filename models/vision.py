@@ -9,7 +9,8 @@ from torchvision import models, datasets, transforms
 def weights_init(m):
     if hasattr(m, "weight"):
         m.weight.data.uniform_(-0.5, 0.5)
-    if hasattr(m, "bias"):
+
+    if hasattr(m, "bias") and m.bias is not None:
         m.bias.data.uniform_(-0.5, 0.5)
         
 class LeNet(nn.Module):
@@ -49,11 +50,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-def weights_init(m):
-    if hasattr(m, "weight"):
-        m.weight.data.uniform_(-0.5, 0.5)
-    if hasattr(m, "bias"):
-        m.bias.data.uniform_(-0.5, 0.5)
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -73,10 +69,10 @@ class BasicBlock(nn.Module):
             )
 
     def forward(self, x):
-        out = F.Sigmoid(self.bn1(self.conv1(x)))
+        out = torch.sigmoid(self.bn1(self.conv1(x)))
         out = self.bn2(self.conv2(out))
         out += self.shortcut(x)
-        out = F.Sigmoid(out)
+        out = torch.sigmoid(out)
         return out
 
 
@@ -100,11 +96,11 @@ class Bottleneck(nn.Module):
             )
 
     def forward(self, x):
-        out = F.Sigmoid(self.bn1(self.conv1(x)))
-        out = F.Sigmoid(self.bn2(self.conv2(out)))
+        out = torch.sigmoid(self.bn1(self.conv1(x)))
+        out = torch.sigmoid(self.bn2(self.conv2(out)))
         out = self.bn3(self.conv3(out))
         out += self.shortcut(x)
-        out = F.Sigmoid(out)
+        out = torch.sigmoid(out)
         return out
 
 
@@ -130,13 +126,20 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        out = F.Sigmoid(self.bn1(self.conv1(x)))
+        out = torch.sigmoid(self.bn1(self.conv1(x)))
+        # print(out.shape)
         out = self.layer1(out)
+        # print(out.shape)
         out = self.layer2(out)
+        # print(out.shape)
         out = self.layer3(out)
+        # print(out.shape)
         out = self.layer4(out)
-        out = F.avg_pool2d(out, 4)
+        # print(out.shape)
+        out = F.adaptive_avg_pool2d(out, 1)
+        # print(out.shape)
         out = out.view(out.size(0), -1)
+        # print(out.shape)
         out = self.linear(out)
         return out
 
