@@ -119,3 +119,5 @@ There are the following issues that the paper (and the code) fails to address:
     - It is interesting to see how model architecture affects the attack. For example, do more parameters make it easier to attack, or harder? 
 - Evaluations are limited. Only visualization is carried out. 
     - Objective metrics should be involved, such as the MSE, the PSNR (peak signal-to-noise ratio). 
+
+**Note**: There is a paper called "Inverting Gradients: How easy is it to break privacy in federated learning?" in NeurIPS 2020 \[[paper](https://arxiv.org/pdf/2003.14053.pdf)\] which did many experiments on DLG. Some of the 'What we want to do' are borrowed there. 
