@@ -5,13 +5,14 @@ from pprint import pprint
 
 from PIL import Image
 import matplotlib.pyplot as plt
-import skimage
+from skimage.metrics import structural_similarity
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import grad
 import torchvision
 from torchvision import models, datasets, transforms
+
 import time
 print("Pytorch version:", torch.__version__, "torchvision version:", torchvision.__version__)
 
@@ -147,6 +148,11 @@ if args.alg == 'DLG':
 mse = (dummy_data - gt_data).pow(2).mean()
 print("MSE between inferred and ground truth is %f" % mse)
 print("PSNR between inferred and ground truth is %f" % (10 * torch.log10(1/mse)))
+# dummy_npy = dummy_data[0].detach().cpu().numpy()
+# gt_npy = gt_data[0].detach().cpu().numpy()
+# print(dummy_npy.shape)
+# print(gt_npy.shape)
+# print("SSIM between inferred and ground truth is %f" % (structural_similarity(dummy_npy, gt_npy, gaussian_weights=True, sigma=1.5, use_sample_covariance = False)))
 plt.figure(figsize=(12, 8))
 for i in range(args.iters // 10):
     plt.subplot(args.iters // 100 + 1, 10, i + 1)
