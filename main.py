@@ -31,6 +31,8 @@ parser.add_argument("--iters", type = int, default = 300,
 #                     help='Optimizer to use. According to paper, lbfgs.')
 parser.add_argument('--alg', type = str, default = 'DLG', 
                     help='Method to use. Supports DLG and iDLG. iDLG infers label first.')
+parser.add_argument('--act', type = str, default = 'relu', 
+                    help='Activation function to use. Supports tanh, sigmoid and relu.')
 args = parser.parse_args()
 
 device = "cpu"
@@ -74,18 +76,19 @@ plt.imshow(tt(gt_data[0].cpu()))
 
 from models.vision import LeNet, weights_init, ResNet18, ResNet34, AlexNet
 if args.arch == 'LeNet5':
-    net = LeNet(nchannel, nclass).to(device)
+    net = LeNet(nchannel, nclass, args.act).to(device)
     net.apply(weights_init)
 elif args.arch == 'ResNet18':
-    net = ResNet18(nclass, nchannel).to(device)
+    net = ResNet18(nclass, nchannel, args.act).to(device)
     net.apply(weights_init)
 elif args.arch == 'ResNet34':
-    net = ResNet34(nclass, nchannel).to(device)
+    net = ResNet34(nclass, nchannel, args.act).to(device)
     net.apply(weights_init)
 elif args.arch == 'AlexNet':
-    net = AlexNet(nclass = nclass, in_channels=nchannel).to(device)
+    net = AlexNet(nclass = nclass, in_channels=nchannel, act=args.act).to(device)
 else:
     raise NotImplementedError("Only supports LeNet5, AlexNet, ResNet18 and ResNet34.")
+print(net)
 
 torch.manual_seed(1234)
 
