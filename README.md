@@ -2,6 +2,8 @@
 
 Note: The code here are minor modifications based on https://github.com/mit-han-lab/dlg. We acknowledge their contributions. 
 
+Update Apr 15th. The `invgrad.py` is inspired by https://github.com/jonasgeiping/invertinggradients. We also acknowledge their contributions. 
+
 ## Original Paper
 
 DLG: \[[paper](https://arxiv.org/abs/1906.08935)\] \[[Website](https://hanlab.mit.edu/projects/dlg/)\]
