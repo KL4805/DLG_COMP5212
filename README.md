@@ -10,6 +10,8 @@ DLG: \[[paper](https://arxiv.org/abs/1906.08935)\] \[[Website](https://hanlab.mi
 
 iDLG: \[[paper](https://arxiv.org/pdf/2001.02610.pdf)\] iDLG is an extension over DLG that first infers label information given the gradients. 
 
+InvGrad: \[[paper](https://arxiv.org/abs/2003.14053)\] InvGrad is a modification to DLG that aims to extend it to more realistic cases. 
+
 ## Introduction
 
 Modern deep learning relies heavily on **Gradient Descent**. Given an arbitrary parameterized model $f_\theta()$ (e.g. a neural network, a logistic regression), a data-label pair $(x, y)$, a loss function $L(\hat{y}, y)$, the model can generally be trained in the form: 
